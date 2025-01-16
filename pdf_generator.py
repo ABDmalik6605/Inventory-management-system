@@ -131,6 +131,3 @@ def generate_salesman_reports():
     # Close the database connections
     conn_salesman.close()
     conn_inventory.close()
-
-
-generate_salesman_reports()
