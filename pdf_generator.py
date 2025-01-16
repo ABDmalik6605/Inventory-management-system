@@ -54,21 +54,6 @@ def generate_salesman_reports():
         """, (salesman_name,))
         transactions = cursor_salesman.fetchall()
 
-        # # Process product data
-        # product_data = {}
-        # for transaction in transactions:
-        #     product, quantity, payment, return_qty = transaction
-
-        #     if product not in product_data:
-        #         product_data[product] = {
-        #             "issues": [],
-        #             "total_returns": 0,
-        #             "total_payment": 0
-        #         }
-
-        #     product_data[product]["issues"].append(quantity)
-        #     product_data[product]["total_returns"] += return_qty
-        #     product_data[product]["total_payment"] += payment
         product_data = {}
         for transaction in transactions:
             product, quantity, payment, return_qty = transaction
@@ -146,5 +131,6 @@ def generate_salesman_reports():
     # Close the database connections
     conn_salesman.close()
     conn_inventory.close()
+
 
 generate_salesman_reports()
