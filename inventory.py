@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 
+from Databases import sync_product_with_salesman
+
 class InventoryManager:
     def __init__(self, root):
         self.root = root
@@ -146,7 +148,7 @@ class InventoryManager:
 
         conn.commit()
         conn.close()
-
+        sync_product_with_salesman(name)
         self.clear_inputs()
         self.view_inventory()
 

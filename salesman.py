@@ -1,258 +1,226 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
-from pdf_generator import generate_salesman_reports
+from Databases import sync_inventory_with_salesman
 
 class SalesmanManager:
     def __init__(self, root):
         self.root = root
 
     def create_salesman_tab(self, notebook):
+        # Create the tab frame
         salesman_tab = tk.Frame(notebook, bg="#f0f0f0")
-        notebook.add(salesman_tab, text="Salesman")
-        self.setup_salesman_tab(salesman_tab)
+        notebook.add(salesman_tab, text="Salesmen")
+
+        # Create two frames for the split screen
+        left_frame = tk.Frame(salesman_tab, bg="#f0f0f0", width=300)
+        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+        right_frame = tk.Frame(salesman_tab, bg="#ffffff")
+        right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Left Frame: List of Salesmen
+        tk.Label(left_frame, text="Salesmen", font=("Arial", 16, "bold"), bg="#f0f0f0").pack(pady=10)
+        self.salesman_list = tk.Listbox(left_frame, font=("Arial", 12))
+        self.salesman_list.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Add event to update the right table when a salesman is selected
+        self.salesman_list.bind("<<ListboxSelect>>", lambda e: self.show_salesman_details(right_frame))
+
+        # Add New Salesman Section
+        add_frame = tk.Frame(left_frame, bg="#f0f0f0")
+        add_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        tk.Label(add_frame, text="Add Salesman:", font=("Arial", 12), bg="#f0f0f0").pack(anchor=tk.W)
+        self.new_salesman_entry = tk.Entry(add_frame, font=("Arial", 12))
+        self.new_salesman_entry.pack(fill=tk.X, pady=5)
+
+        add_button = tk.Button(add_frame, text="Add", font=("Arial", 12), bg="#4CAF50", fg="white",
+                               command=self.add_salesman)
+        add_button.pack(pady=5)
+
+        # Right Frame: Table for Salesman Details
+        tk.Label(right_frame, text="Salesman Details", font=("Arial", 16, "bold"), bg="#ffffff").pack(pady=10)
+        columns = ("Product", "Load1", "Load2", "TotalLoad", "Return", "Payment")
+        self.details_tree = ttk.Treeview(right_frame, columns=columns, show="headings")
+        for col in columns:
+            self.details_tree.heading(col, text=col)
+            self.details_tree.column(col, anchor="center", width=100)
+        self.details_tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Enable cell editing feature
+        self.enable_cell_editing()
+        # Load data into the left listbox
+        self.load_salesmen()
+
         return salesman_tab
 
-    # def setup_salesman_tab(self, tab):
-    #     input_frame = tk.Frame(tab, padx=10, pady=10, bg="#ffffff", relief="groove")
-    #     input_frame.pack(pady=10, fill=tk.X)
+    def load_salesmen(self):
+        # Connect to the database and fetch salesman names
+        try:
+            conn = sqlite3.connect("salesman.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT Distinct name FROM salesman")
+            rows = cursor.fetchall()
+            conn.close()
 
-    #     # Define input fields, buttons, and table for the Salesman tab
-    #     pass
+            # Populate the Listbox with salesman names
+            self.salesman_list.delete(0, tk.END)
+            for row in rows:
+                self.salesman_list.insert(tk.END, row[0])
 
-    # def add_salesman(self):
-    #     # Logic to add a salesman
-    #     pass
-
-    # # Other methods related to salesman operations
-    def setup_salesman_tab(self,tab):
-        # Frames for layout
-        input_frame = tk.Frame(tab,padx=10, pady=10, bg="#ffffff", relief="groove")
-        input_frame.pack(pady=10, fill=tk.X)
-
-        table_frame = tk.Frame(tab,padx=10, pady=10, bg="#ffffff", relief="groove")
-        table_frame.pack(pady=10, fill=tk.BOTH, expand=True)
-
-        # Input fields
-        tk.Label(input_frame, text="Salesman Name", bg="#ffffff").grid(row=0, column=0, padx=5, pady=5)
-        self.salesman_name_var = tk.StringVar()
-        self.salesman_name_entry = tk.Entry(input_frame, textvariable=self.salesman_name_var)
-        self.salesman_name_entry.grid(row=0, column=1, padx=5, pady=5)
-
-        tk.Label(input_frame, text="Product Name", bg="#ffffff").grid(row=1, column=0, padx=5, pady=5)
-        self.salesman_product_var = tk.StringVar()
-        self.salesman_product_entry = tk.Entry(input_frame, textvariable=self.salesman_product_var)
-        self.salesman_product_entry.grid(row=1, column=1, padx=5, pady=5)
-
-        tk.Label(input_frame, text="Quantity", bg="#ffffff").grid(row=2, column=0, padx=5, pady=5)
-        self.salesman_quantity_var = tk.IntVar()
-        self.salesman_quantity_entry = tk.Entry(input_frame, textvariable=self.salesman_quantity_var)
-        self.salesman_quantity_entry.grid(row=2, column=1, padx=5, pady=5)
-
-        # Bind arrow keys for navigation
-        self.salesman_name_entry.bind("<Down>", self.move_to_product_field)
-        self.salesman_product_entry.bind("<Up>", self.move_to_salesman_name_field)
-        self.salesman_product_entry.bind("<Down>", self.move_to_quantity_field)
-        self.salesman_quantity_entry.bind("<Up>", self.move_to_product_field)
-        
-        # Buttons
-        tk.Button(input_frame, text="Add Salesman", command=self.add_salesman, bg="#4caf50", fg="white").grid(row=3, column=0, padx=5, pady=10)
-        tk.Button(input_frame, text="View Salesmen", command=self.view_salesmen, bg="#2196f3", fg="white").grid(row=3, column=1, padx=5, pady=10)
-        tk.Button(input_frame, text="Save Salesmen data", command=generate_salesman_reports, bg="#FF0000", fg="white").grid(row=3, column=2, padx=15, pady=10)
-        tk.Button(input_frame, text="Clear Record", command=self.erase_all_data, bg="#000000", fg="white").grid(row=3, column=3, padx=15, pady=10)
-        
-        # Salesman Table
-        self.salesman_tree = ttk.Treeview(table_frame, columns=("ID", "Name", "Product", "Quantity", "Payment","Return"), show="headings")
-        self.salesman_tree.heading("ID", text="ID")
-        self.salesman_tree.heading("Name", text="Name")
-        self.salesman_tree.heading("Product", text="Product")
-        self.salesman_tree.heading("Quantity", text="Quantity")
-        self.salesman_tree.heading("Payment", text="Payment")
-        self.salesman_tree.heading("Return", text="Return")
-
-        # Align columns to the center
-        for col in ["ID", "Name", "Product", "Quantity", "Payment", "Return"]:
-            self.salesman_tree.column(col, anchor="center")
-
-        # Add scrollbar for the treeview
-        scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.salesman_tree.yview)
-        self.salesman_tree.configure(yscroll=scrollbar.set)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Pack the treeview to display the table
-        self.salesman_tree.pack(fill=tk.BOTH, expand=True)
-
-        # Bind the double-click event for editing a salesman entry
-        self.salesman_tree.bind("<Double-1>", self.edit_salesman)
-        self.view_salesmen()
-        
-    #Cursor movements
-    def move_to_salesman_name_field(self, event=None):
-        self.salesman_name_entry.focus_set()
-
-    def move_to_product_field(self, event=None):
-        self.salesman_product_entry.focus_set()
-
-    def move_to_quantity_field(self, event=None):
-        self.salesman_quantity_entry.focus_set()
-        
-    #Add salesman
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
+    
     def add_salesman(self):
-        name = self.salesman_name_var.get().strip()
-        product = self.salesman_product_var.get().strip()
-        quantity = self.salesman_quantity_var.get()
-
-        if not name or not product or not quantity:
-            messagebox.showwarning("Input Error", "All fields are required!")
+        # Get the name from the entry field
+        name = self.new_salesman_entry.get().strip()
+        if not name:
+            messagebox.showwarning("Input Error", "Salesman name cannot be empty.")
             return
 
-        # Check if the product exists in the inventory database (case-insensitive)
-        conn = sqlite3.connect("inventory.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name, quantity, price_per_kg FROM inventory WHERE LOWER(name) = LOWER(?)", (product,))
-        result = cursor.fetchone()
-        
-        if not result:
-            conn.close()
-            messagebox.showwarning("Product Error", f"The product '{product}' does not exist in the inventory!")
-            return
+        # Ensure the name is a string
+        if not isinstance(name, str):
+            raise ValueError(f"Expected 'name' to be a string, but got {type(name).__name__}")
 
-        # Extract the product data from the query result
-        product_id, product_name, inventory_quantity, price_per_kg = result
+        try:
+            # Sync existing inventory products with the new salesman
+            sync_inventory_with_salesman(name)
 
-        # Check if the entered quantity is greater than available quantity
-        if quantity > inventory_quantity:
-            conn.close()
-            messagebox.showwarning("Quantity Error", f"Entered quantity ({quantity}) exceeds available quantity ({inventory_quantity}) in the inventory!")
-            return
+            # Refresh the salesman list
+            self.load_salesmen()
+            messagebox.showinfo("Success", f"Salesman '{name}' added successfully!")
 
-        # Subtract the quantity from the inventory
-        new_quantity = inventory_quantity - quantity
-        total_price = new_quantity * price_per_kg
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
 
-        # Update the inventory with the new quantity and total price
-        cursor.execute("UPDATE inventory SET quantity = ?, total_price = ? WHERE id = ?", (new_quantity, total_price, product_id))
-        conn.commit()
+    def show_salesman_details(self, right_frame):
+        # Clear the current details in the table
+        self.details_tree.delete(*self.details_tree.get_children())
 
-        # Calculate the payment (quantity * price_per_kg)
-        payment = quantity * price_per_kg
+        # Get the selected salesman name
+        selected_index = self.salesman_list.curselection()
+        if not selected_index:
+            return  # No selection, exit the function
 
-        # Add the salesman record to the salesman table, including the calculated payment
-        conn = sqlite3.connect("salesman.db")
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO salesman (name, product, quantity, payment) VALUES (?, ?, ?, ?)", (name, product, quantity, payment))
-        conn.commit()
-        conn.close()
+        selected_name = self.salesman_list.get(selected_index)
 
-        # Clear fields and refresh salesmen view
-        self.salesman_name_var.set("")
-        self.salesman_product_var.set("")
-        self.salesman_quantity_var.set(0)
-        self.view_salesmen()
-        generate_salesman_reports()
-
-
-    def view_salesmen(self):
-        conn = sqlite3.connect("salesman.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM salesman")
-        rows = cursor.fetchall()
-        conn.close()
-
-        for row in self.salesman_tree.get_children():
-            self.salesman_tree.delete(row)
-
-        for row in rows:
-            self.salesman_tree.insert("", tk.END, values=row)
-
-    def erase_all_data(self):
-        # Show a confirmation dialog
-        response = messagebox.askyesno("Confirm Deletion", "Are you sure you want to delete all data?")
-        
-        # If the user clicks "Yes", proceed with deletion
-        if response:
+        # Fetch and display the details of the selected salesman
+        try:
             conn = sqlite3.connect("salesman.db")
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM salesman")  # Deletes all rows from the table
-            conn.commit()
+            cursor.execute(
+                """
+                SELECT product, load1, load2, totalload, return, payment 
+                FROM salesman 
+                WHERE name = ?
+                """,
+                (selected_name,),
+            )
+            rows = cursor.fetchall()
             conn.close()
-            messagebox.showinfo("Success", "All data has been deleted.")
-        else:
-            messagebox.showinfo("Cancelled", "Data deletion has been cancelled.")
+
+            for row in rows:
+                self.details_tree.insert("", "end", values=row)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
             
-        self.view_salesmen()
+            
+    def enable_cell_editing(self):
+        self.details_tree.bind("<Double-1>", self.on_cell_double_click)
 
+    def on_cell_double_click(self, event):
+        # Get the selected row and column
+        item_id = self.details_tree.identify_row(event.y)
+        column_id = self.details_tree.identify_column(event.x)
 
-    def edit_salesman(self, event):
-        selected_item = self.salesman_tree.selection()
-        if not selected_item:
+        if not item_id or column_id not in ("#2", "#3", "#5"):  # Edit only "Load1", "Load2", and "Return"
             return
 
-        item = self.salesman_tree.item(selected_item)
-        record = item["values"]
-        
-        # Variables for current quantity and product name
-        current_quantity = record[3]
-        product = record[2]
+        # Get the cell value
+        column_index = int(column_id.strip("#")) - 1
+        cell_value = self.details_tree.item(item_id, "values")[column_index]
 
-        self.salesman_return_var = tk.IntVar(value=0)  # New variable for "return"
+        # Get the cell coordinates
+        x, y, width, height = self.details_tree.bbox(item_id, column_id)
 
-        def save_changes():
-            return_value = self.salesman_return_var.get()
+        # Create an Entry widget for editing
+        entry = tk.Entry(self.details_tree, font=("Arial", 12))
+        entry.place(x=x, y=y, width=width, height=height)
+        entry.insert(0, cell_value)
 
-            if return_value <= 0:
-                messagebox.showwarning("Input Error", "Return quantity must be greater than 0!")
+        # Add focus-out and Enter key events to save changes
+        entry.bind("<Return>", lambda e: self.save_cell_value(item_id, column_index, entry))
+        entry.bind("<FocusOut>", lambda e: entry.destroy())
+
+        entry.focus()
+
+    def save_cell_value(self, item_id, column_index, entry):
+        # Get the new value from the Entry widget
+        new_value = entry.get().strip()
+        if not new_value.isdigit() or int(new_value) < 0:  # Check for non-negative numeric values
+            messagebox.showerror("Input Error", "Only non-negative numeric values are allowed.")
+            entry.destroy()
+            return
+
+        new_value = int(new_value)  # Convert the value to integer for calculations
+
+        # Get current row values
+        values = list(self.details_tree.item(item_id, "values"))
+        values[column_index] = new_value
+
+        # Update TotalLoad (Load1 + Load2) if Load1 or Load2 changes
+        if column_index in (1, 2):  # Load1 or Load2
+            load1 = int(values[1]) if values[1] else 0
+            load2 = int(values[2]) if values[2] else 0
+            total_load = load1 + load2
+            values[3] = total_load  # Update TotalLoad column
+
+            # Ensure Return is less than TotalLoad
+            return_value = int(values[4]) if values[4] else 0
+            if return_value >= total_load:
+                messagebox.showerror("Validation Error", "Return value must be less than Total Load.")
+                entry.destroy()
                 return
 
-            if return_value > current_quantity:
-                messagebox.showwarning("Input Error", "Return quantity cannot be greater than the current quantity!")
+        # Validate Return if Return column is edited
+        if column_index == 4:  # Return
+            total_load = int(values[3]) if values[3] else 0
+            if new_value >= total_load:
+                messagebox.showerror("Validation Error", "Return value must be less than Total Load.")
+                entry.destroy()
                 return
 
-            # Fetch price_per_kg from the inventory database
-            conn = sqlite3.connect("inventory.db")
-            cursor = conn.cursor()
-            cursor.execute("SELECT quantity, price_per_kg FROM inventory WHERE LOWER(name) = LOWER(?)", (product,))
-            result = cursor.fetchone()
+        # Update the Treeview
+        self.details_tree.item(item_id, values=values)
+        entry.destroy()
 
-            if not result:
-                conn.close()
-                messagebox.showwarning("Product Error", f"The product '{product}' does not exist in the inventory!")
-                return
-
-            inventory_quantity, price_per_kg = result
-
-            # Update the inventory with the returned quantity
-            new_inventory_quantity = inventory_quantity + return_value
-            total_price = new_inventory_quantity * price_per_kg
-
-            cursor.execute("UPDATE inventory SET quantity=?, total_price=? WHERE LOWER(name) = LOWER(?)",
-                        (new_inventory_quantity, total_price, product))
-            conn.commit()
-            conn.close()
-
-            # Update the salesman's record with the new quantity and payment
-            new_salesman_quantity = current_quantity #- return_value
-            payment = (new_salesman_quantity - return_value )* price_per_kg  # Recalculate payment
-
+        # Update the database
+        try:
+            selected_name = self.salesman_list.get(self.salesman_list.curselection())
+            product_name = values[0]  # Assuming the first column is "Product"
             conn = sqlite3.connect("salesman.db")
             cursor = conn.cursor()
-            cursor.execute("UPDATE salesman SET quantity=?, payment=?, return=? WHERE id=?",
-                        (new_salesman_quantity, payment, return_value, record[0]))
+
+            # Update the respective column in the database
+            if column_index == 1:  # Load1
+                cursor.execute(
+                    "UPDATE salesman SET load1 = ?, totalload = ? WHERE name = ? AND product = ?",
+                    (values[1], values[3], selected_name, product_name),
+                )
+            elif column_index == 2:  # Load2
+                cursor.execute(
+                    "UPDATE salesman SET load2 = ?, totalload = ? WHERE name = ? AND product = ?",
+                    (values[2], values[3], selected_name, product_name),
+                )
+            elif column_index == 4:  # Return
+                cursor.execute(
+                    "UPDATE salesman SET return = ? WHERE name = ? AND product = ?",
+                    (values[4], selected_name, product_name),
+                )
+
             conn.commit()
             conn.close()
-            generate_salesman_reports()
+            messagebox.showinfo("Success", "Value updated successfully!")
 
-            self.view_salesmen()
-            top.destroy()
-
-        # Create a new top-level window to ask for the return quantity
-        top = tk.Toplevel(self.root)
-        top.title("Enter Return Quantity")
-
-        tk.Label(top, text=f"Product: {product}").grid(row=0, column=0, padx=10, pady=10, columnspan=2)
-        tk.Label(top, text=f"Current Quantity: {current_quantity}").grid(row=1, column=0, padx=10, pady=10, columnspan=2)
-
-        tk.Label(top, text="Return Quantity").grid(row=2, column=0, padx=10, pady=10)
-        tk.Entry(top, textvariable=self.salesman_return_var).grid(row=2, column=1, padx=10, pady=10)
-
-        tk.Button(top, text="Save Changes", command=save_changes).grid(row=3, column=0, columnspan=2, pady=10)
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
