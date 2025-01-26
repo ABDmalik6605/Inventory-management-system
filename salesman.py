@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 from Databases import sync_inventory_with_salesman
+from pdf_generator import generate_salesman_reports
 
 class SalesmanManager:
     def __init__(self, root):
@@ -37,15 +38,52 @@ class SalesmanManager:
         add_button = tk.Button(add_frame, text="Add", font=("Arial", 12), bg="#4CAF50", fg="white",
                                command=self.add_salesman)
         add_button.pack(pady=5)
+        
+        # Add New Expense Section
+        expense_frame = tk.Frame(right_frame, bg="#ffffff")
+        expense_frame.pack(fill=tk.X, padx=10, pady=10)
+
+        tk.Label(expense_frame, text="Add Expense:", font=("Arial", 12), bg="#ffffff").pack(anchor=tk.W)
+        self.new_expense_entry = tk.Entry(expense_frame, font=("Arial", 12))
+        self.new_expense_entry.pack(fill=tk.X, pady=5)
+
+        add_expense_button = tk.Button(
+            expense_frame, text="Add Expense", font=("Arial", 12), bg="#4CAF50", fg="white",
+            command=self.add_expense
+        )
+        add_expense_button.pack(pady=5)
+
+        # Delete Salesman Button
+        delete_button = tk.Button(
+            left_frame,
+            text="Delete Salesman",
+            font=("Arial", 12),
+            bg="#f44336",
+            fg="white",
+            command=self.delete_salesman
+        )
+        delete_button.pack(pady=5)
 
         # Right Frame: Table for Salesman Details
         tk.Label(right_frame, text="Salesman Details", font=("Arial", 16, "bold"), bg="#ffffff").pack(pady=10)
-        columns = ("Product", "Load1", "Load2", "TotalLoad", "Return", "Payment")
+        columns = ("Product", "Load1", "Load2", "TotalLoad", "Return", "Sales", "Payment")
         self.details_tree = ttk.Treeview(right_frame, columns=columns, show="headings")
         for col in columns:
             self.details_tree.heading(col, text=col)
             self.details_tree.column(col, anchor="center", width=100)
         self.details_tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Add a label for displaying Total Payment
+        self.total_payment_label = tk.Label(right_frame, text="Total Payment: 0.00", font=("Arial", 14, "bold"), bg="#ffffff")
+        self.total_payment_label.pack(pady=10)
+
+        # Save button to generate PDF
+        self.save_button = tk.Button(right_frame, text="Save", font=("Arial", 12), bg="#4CAF50", fg="white", command=self.save_salesman_data)
+        self.save_button.pack(pady=5)
+
+        # Clear Record button
+        clear_record_button = tk.Button(right_frame,text="Clear Records",font=("Arial", 12),bg="#f44336",fg="white",command=self.clear_records)
+        clear_record_button.pack(pady=5)
         # Enable cell editing feature
         self.enable_cell_editing()
         # Load data into the left listbox
@@ -58,7 +96,7 @@ class SalesmanManager:
         try:
             conn = sqlite3.connect("salesman.db")
             cursor = conn.cursor()
-            cursor.execute("SELECT Distinct name FROM salesman")
+            cursor.execute("SELECT DISTINCT name FROM salesman")
             rows = cursor.fetchall()
             conn.close()
 
@@ -69,7 +107,7 @@ class SalesmanManager:
 
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"An error occurred: {e}")
-    
+
     def add_salesman(self):
         # Get the name from the entry field
         name = self.new_salesman_entry.get().strip()
@@ -82,11 +120,25 @@ class SalesmanManager:
             raise ValueError(f"Expected 'name' to be a string, but got {type(name).__name__}")
 
         try:
+            # Check if the salesman already exists (case-insensitive)
+            conn = sqlite3.connect("salesman.db")
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT name FROM salesman WHERE LOWER(name) = LOWER(?)", (name,))
+            existing_salesman = cursor.fetchone()
+
+            if existing_salesman:
+                messagebox.showerror("Duplicate Error", f"Salesman '{name}' already exists.")
+                conn.close()
+                return
+
             # Sync existing inventory products with the new salesman
             sync_inventory_with_salesman(name)
 
             # Refresh the salesman list
             self.load_salesmen()
+            conn.close()
+
             messagebox.showinfo("Success", f"Salesman '{name}' added successfully!")
 
         except sqlite3.Error as e:
@@ -109,22 +161,153 @@ class SalesmanManager:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                SELECT product, load1, load2, totalload, return, payment 
+                SELECT product, load1, load2, load1+load2 AS totalload, return, load1+load2-return AS sales, payment 
                 FROM salesman 
                 WHERE name = ?
                 """,
                 (selected_name,),
             )
             rows = cursor.fetchall()
-            conn.close()
 
+            # Display data in the table
             for row in rows:
                 self.details_tree.insert("", "end", values=row)
 
+            # Calculate and display total payment
+            cursor.execute(
+                "SELECT SUM(payment) FROM salesman WHERE name = ?", (selected_name,)
+            )
+            total_payment = cursor.fetchone()[0] or 0.0
+            self.total_payment_label.config(text=f"Total Payment: {total_payment:.2f}")
+
+            conn.close()
+
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"An error occurred: {e}")
+
+    def delete_salesman(self):
+        # Get the selected salesman name
+        selected_index = self.salesman_list.curselection()
+        if not selected_index:
+            messagebox.showwarning("Selection Error", "Please select a salesman to delete.")
+            return
+
+        selected_name = self.salesman_list.get(selected_index)
+
+        # Confirm the deletion
+        confirm = messagebox.askyesno(
+            "Confirm Deletion",
+            f"Are you sure you want to delete salesman '{selected_name}'?"
+        )
+        if not confirm:
+            return
+
+        # Delete the salesman from the database
+        try:
+            conn = sqlite3.connect("salesman.db")
+            cursor = conn.cursor()
+
+            # Remove the salesman from the database
+            cursor.execute("DELETE FROM salesman WHERE name = ?", (selected_name,))
+            conn.commit()
+            conn.close()
+
+            # Refresh the salesmen list
+            self.load_salesmen()
+
+            # Clear the details table
+            self.details_tree.delete(*self.details_tree.get_children())
+
+            # Reset the total payment label
+            self.total_payment_label.config(text="Total Payment: 0.00")
+
+            messagebox.showinfo("Success", f"Salesman '{selected_name}' deleted successfully!")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
+
+    def save_salesman_data(self):
+        # Get the selected salesman name
+        selected_index = self.salesman_list.curselection()
+        if not selected_index:
+            messagebox.showwarning("Selection Error", "Please select a salesman first.")
+            return
+
+        selected_name = self.salesman_list.get(selected_index)
+
+        # Call the utility function to save data to PDF
+        pdf_path = generate_salesman_reports(selected_name)
+
+        # Notify the user that the PDF has been saved
+        if pdf_path:
+            print("PDF Saved", f"Salesman data has been saved to {pdf_path}")
             
-            
+    def clear_records(self):
+        # Save data for all salesmen
+        try:
+            conn = sqlite3.connect("salesman.db")
+            cursor = conn.cursor()
+
+            # Fetch all salesmen names
+            cursor.execute("SELECT DISTINCT name FROM salesman")
+            salesmen = cursor.fetchall()
+
+            # Call save_salesman_data for each salesman
+            for salesman in salesmen:
+                self.save_salesman_data()
+
+            # Reset values to 0 for all salesmen
+            cursor.execute("""
+                UPDATE salesman
+                SET load1 = 0, load2 = 0, return = 0, payment = 0, expense = 0
+            """)
+            conn.commit()
+            conn.close()
+
+            # Reload the list of salesmen to refresh UI
+            self.load_salesmen()
+            messagebox.showinfo("Success", "Records cleared successfully!")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
+
+    def add_expense(self):
+        # Get the selected salesman name
+        selected_index = self.salesman_list.curselection()
+        if not selected_index:
+            messagebox.showwarning("Selection Error", "Please select a salesman first.")
+            return
+
+        selected_name = self.salesman_list.get(selected_index)
+        
+        # Get the expense amount from the entry field
+        try:
+            expense = float(self.new_expense_entry.get().strip())
+            if expense <= 0:
+                raise ValueError("Expense must be a positive number.")
+        except ValueError as e:
+            messagebox.showerror("Input Error", f"Invalid expense value: {e}")
+            return
+
+        # Insert the expense into the database
+        try:
+            conn = sqlite3.connect("salesman.db")
+            cursor = conn.cursor()
+            cursor.execute(
+            "UPDATE salesman SET expense = ? WHERE name = ?",
+            (expense, selected_name)
+            )
+            conn.commit()
+            conn.close()
+
+            # Update the total expense and refresh the table
+            self.show_salesman_details(None)
+            messagebox.showinfo("Success", "Expense added successfully!")
+            self.save_salesman_data()
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An error occurred: {e}")
+
     def enable_cell_editing(self):
         self.details_tree.bind("<Double-1>", self.on_cell_double_click)
 
@@ -154,6 +337,7 @@ class SalesmanManager:
 
         entry.focus()
 
+
     def save_cell_value(self, item_id, column_index, entry):
         # Get the new value from the Entry widget
         new_value = entry.get().strip()
@@ -162,33 +346,104 @@ class SalesmanManager:
             entry.destroy()
             return
 
-        new_value = int(new_value)  # Convert the value to integer for calculations
+        new_value = int(new_value)  # Convert the value to an integer for calculations
 
         # Get current row values
         values = list(self.details_tree.item(item_id, "values"))
+
+        # Initialize total_load and sales
+        load1 = int(values[1]) if values[1] else 0
+        load2 = int(values[2]) if values[2] else 0
+        return_value = int(values[4]) if values[4] else 0
+        total_load = load1 + load2
+        sales = total_load - return_value
+
+        # Update the specific column value
         values[column_index] = new_value
 
-        # Update TotalLoad (Load1 + Load2) if Load1 or Load2 changes
-        if column_index in (1, 2):  # Load1 or Load2
-            load1 = int(values[1]) if values[1] else 0
-            load2 = int(values[2]) if values[2] else 0
-            total_load = load1 + load2
-            values[3] = total_load  # Update TotalLoad column
+        # Get the product name
+        product_name = values[0]  # Assuming the first column is "Product"
 
-            # Ensure Return is less than TotalLoad
-            return_value = int(values[4]) if values[4] else 0
+        # Fetch inventory data
+        conn = sqlite3.connect("inventory.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT quantity, price_per_kg FROM inventory WHERE name = ?", (product_name,))
+        inventory_data = cursor.fetchone()
+        conn.close()
+
+        if not inventory_data:
+            messagebox.showerror("Inventory Error", f"Product '{product_name}' not found in inventory.")
+            entry.destroy()
+            return
+
+        available_quantity, price_per_kg = inventory_data
+
+        # Handle different columns
+        if column_index in (1, 2):  # If Load1 or Load2 is edited
+            required_quantity = new_value - (load1 if column_index == 1 else load2)
+
+            if required_quantity > available_quantity:
+                messagebox.showerror("Inventory Error", f"Insufficient quantity for '{product_name}' in inventory.")
+                entry.destroy()
+                return
+
+            # Update inventory
+            new_inventory_quantity = available_quantity - required_quantity
+            new_total_price = new_inventory_quantity * price_per_kg
+
+            conn = sqlite3.connect("inventory.db")
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE inventory SET quantity = ?, total_price = ? WHERE name = ?",
+                (new_inventory_quantity, new_total_price, product_name),
+            )
+            conn.commit()
+            conn.close()
+
+            # Update the salesman's data
+            if column_index == 1:
+                load1 = new_value
+            else:
+                load2 = new_value
+
+            total_load = load1 + load2
+            values[3] = total_load  # Update TotalLoad
+
             if return_value >= total_load:
                 messagebox.showerror("Validation Error", "Return value must be less than Total Load.")
                 entry.destroy()
                 return
 
-        # Validate Return if Return column is edited
-        if column_index == 4:  # Return
-            total_load = int(values[3]) if values[3] else 0
-            if new_value >= total_load:
+            sales = total_load - return_value
+            values[5] = sales  # Update Sales
+
+        elif column_index == 4:  # If Return is edited
+            return_value = new_value
+            if return_value >= total_load:
                 messagebox.showerror("Validation Error", "Return value must be less than Total Load.")
                 entry.destroy()
                 return
+
+            # Update inventory with returned quantity
+            new_inventory_quantity = available_quantity + return_value
+            new_total_price = new_inventory_quantity * price_per_kg
+
+            conn = sqlite3.connect("inventory.db")
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE inventory SET quantity = ?, total_price = ? WHERE name = ?",
+                (new_inventory_quantity, new_total_price, product_name),
+            )
+            conn.commit()
+            conn.close()
+
+            sales = total_load - return_value
+            values[5] = sales  # Update Sales
+            values[4] = return_value  # Update Return value in Treeview
+
+        # Calculate payment
+        payment = sales * price_per_kg
+        values[6] = payment  # Assuming column 6 in Treeview is for Payment
 
         # Update the Treeview
         self.details_tree.item(item_id, values=values)
@@ -197,30 +452,36 @@ class SalesmanManager:
         # Update the database
         try:
             selected_name = self.salesman_list.get(self.salesman_list.curselection())
-            product_name = values[0]  # Assuming the first column is "Product"
+
             conn = sqlite3.connect("salesman.db")
             cursor = conn.cursor()
 
-            # Update the respective column in the database
-            if column_index == 1:  # Load1
+            if column_index == 1:  # Update Load1
                 cursor.execute(
-                    "UPDATE salesman SET load1 = ?, totalload = ? WHERE name = ? AND product = ?",
-                    (values[1], values[3], selected_name, product_name),
+                    "UPDATE salesman SET load1 = ?, payment = ? WHERE name = ? AND product = ?",
+                    (values[1], payment, selected_name, product_name),
                 )
-            elif column_index == 2:  # Load2
+            elif column_index == 2:  # Update Load2
                 cursor.execute(
-                    "UPDATE salesman SET load2 = ?, totalload = ? WHERE name = ? AND product = ?",
-                    (values[2], values[3], selected_name, product_name),
+                    "UPDATE salesman SET load2 = ?, payment = ? WHERE name = ? AND product = ?",
+                    (values[2], payment, selected_name, product_name),
                 )
-            elif column_index == 4:  # Return
+            elif column_index == 4:  # Update Return
                 cursor.execute(
-                    "UPDATE salesman SET return = ? WHERE name = ? AND product = ?",
-                    (values[4], selected_name, product_name),
+                    "UPDATE salesman SET return = ?, payment = ? WHERE name = ? AND product = ?",
+                    (values[4], payment, selected_name, product_name),
                 )
 
             conn.commit()
+            cursor.execute(
+                "SELECT SUM(payment) FROM salesman WHERE name = ?", (selected_name,)
+            )
+            total_payment = cursor.fetchone()[0] or 0.0
+            self.total_payment_label.config(text=f"Total Payment: {total_payment:.2f}")
+
             conn.close()
             messagebox.showinfo("Success", "Value updated successfully!")
+            self.save_salesman_data()
 
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"An error occurred: {e}")

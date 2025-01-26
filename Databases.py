@@ -28,9 +28,9 @@ def create_salesman_db():
             product TEXT,
             load1 INTEGER DEFAULT 0,
             load2 INTEGER DEFAULT 0,
-            totalload INTEGER DEFAULT 0,
             return INTEGER DEFAULT 0,
-            payment REAL DEFAULT 0
+            payment REAL DEFAULT 0,
+            expense REAL DEFAULT 0
         )
     """)
     conn.commit()
@@ -72,8 +72,8 @@ def sync_product_with_salesman(product_name):
         if not exists:
             # Insert the product with default values
             cursor_salesman.execute("""
-                INSERT INTO salesman (name, product, load1, load2, totalload, return, payment)
-                VALUES (?, ?, 0, 0, 0, 0, 0)
+                INSERT INTO salesman (name, product, load1, load2, return, payment)
+                VALUES (?, ?, 0, 0, 0, 0)
             """, (salesman_name, product_name))
 
     conn_salesman.commit()
@@ -108,8 +108,8 @@ def sync_inventory_with_salesman(salesman_name):
     for product_name, in products:
         # Add the product to the new salesman's record with default values
         cursor_salesman.execute("""
-            INSERT INTO salesman (name, product, load1, load2, totalload, return, payment)
-            VALUES (?, ?, 0, 0, 0, 0, 0)
+            INSERT INTO salesman (name, product, load1, load2, return, payment)
+            VALUES (?, ?, 0, 0, 0, 0)
         """, (salesman_name, product_name))
 
     conn_salesman.commit()

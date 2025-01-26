@@ -5,129 +5,137 @@ from fpdf import FPDF
 import tkinter as tk
 from tkinter import messagebox
 
-def generate_salesman_reports():
-    # Initialize tkinter (hidden root window for dialog boxes)
-    root = tk.Tk()
-    root.withdraw()
-    # Get the current date and month
+def generate_salesman_reports(selected_name):
+    # Prepare the directory path
+    current_month = datetime.now().strftime("%B")
     current_date = datetime.now().strftime("%Y-%m-%d")
-    current_month = datetime.now().strftime("%B")  # Full name of the month (e.g., "January")
+    directory_path = os.path.join("SalesmanData", selected_name, current_month)
 
-    # Base folder for all salesman data
-    base_folder = "Salesman Data"
+    # Ensure the directory exists
+    os.makedirs(directory_path, exist_ok=True)
 
-    # Connect to the databases
-    conn_salesman = sqlite3.connect("salesman.db")
-    cursor_salesman = conn_salesman.cursor()
-    conn_inventory = sqlite3.connect("inventory.db")
-    cursor_inventory = conn_inventory.cursor()
+    # Prepare the PDF file path
+    pdf_path = os.path.join(directory_path, f"{current_date}.pdf")
 
-    # Fetch all salesman data (case-insensitive)
-    cursor_salesman.execute("SELECT DISTINCT name FROM salesman")
-    salesmen = cursor_salesman.fetchall()
+    # Check if the file is open by trying to open it in write mode
+    try:
+        with open(pdf_path, 'x'):  # Try to create the file
+            pass
+    except FileExistsError:
+        # If the file already exists, check if it's currently open
+        try:
+            # Try to open the file in append mode to see if it is locked (i.e., open)
+            with open(pdf_path, 'a'):
+                pass
+        except IOError:
+            messagebox.showerror("File Open", f"The file '{pdf_path}' is currently open. Please close it before saving.")
+            return  # Exit the function if the file is open
 
-    for salesman in salesmen:
-        salesman_name = salesman[0].lower()  # Convert to lowercase for consistent comparison
+    # Initialize FPDF object
+    pdf = FPDF()
+    pdf.add_page()
 
-        # Create the folder path: Salesman Data/salesman_name/current_month
-        salesman_folder = os.path.join(base_folder, salesman_name, current_month)
-        if not os.path.exists(salesman_folder):
-            os.makedirs(salesman_folder)
+    # Set font for the PDF
+    pdf.set_font("Arial", size=12)
 
-        # Path to the PDF file for the salesman
-        pdf_path = os.path.join(salesman_folder, f"{current_date}.pdf")
+    # Add title
+    pdf.cell(200, 10, txt=f"Salesman Details for {selected_name}", ln=True, align="C")
+    pdf.ln(10)
 
-        # Create PDF document
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
+    # Query total payment for the selected salesman
+    try:
+        conn = sqlite3.connect("salesman.db")
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT SUM(payment) FROM salesman WHERE name = ?",
+            (selected_name,)
+        )
+        total_payment = cursor.fetchone()[0] or 0.0
+        conn.close()
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", f"An error occurred: {e}")
+        return
 
-        # Set title
-        pdf.set_font("Arial", size=14, style='B')  # Reduced font size
-        pdf.cell(200, 10, txt=f"Sales Report for {salesman_name}", ln=True, align='C')
+    # Add total payment to the PDF with Rs
+    pdf.cell(200, 10, txt=f"Total Payment: Rs {total_payment:.2f}", ln=True, align="C")
+    pdf.ln(10)
+    
+    # Query Expense for the selected salesman
+    try:
+        conn = sqlite3.connect("salesman.db")
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT Distinct Expense FROM salesman WHERE name = ?",
+            (selected_name,)
+        )
+        expense = cursor.fetchone()[0] or 0.0
+        conn.close()
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", f"An error occurred: {e}")
+        return
 
-        # Fetch all products handled by the salesman (case-insensitive comparison)
-        cursor_salesman.execute("""
-            SELECT product, quantity, payment, return
-            FROM salesman
-            WHERE LOWER(name) = ?
-        """, (salesman_name,))
-        transactions = cursor_salesman.fetchall()
+    # Add total payment to the PDF with Rs
+    pdf.cell(200, 10, txt=f"Expense : Rs {expense:.2f}", ln=True, align="C")
+    pdf.ln(5)
 
-        product_data = {}
-        for transaction in transactions:
-            product, quantity, payment, return_qty = transaction
+    # Set a smaller left margin to accommodate the table
+    pdf.set_left_margin(10)
+    
+    # Table headers with an additional 'Rate' column
+    columns = ("Product", "Load1", "Load2", "TotalLoad", "Return", "Sales", "Rate", "Payment")
+    
 
-            # Normalize the product name to lowercase for consistent comparison
-            product_normalized = product.lower()
+    # Adjust column widths to fit the page
+    column_widths = [27, 20, 20, 25, 20, 20, 28, 30]
 
-            if product_normalized not in product_data:
-                product_data[product_normalized] = {
-                    "issues": [],
-                    "total_returns": 0,
-                    "total_payment": 0
-                }
+    for col, width in zip(columns, column_widths):
+        pdf.cell(width, 10, txt=col, border=1, align="C")
+    pdf.ln()
 
-            product_data[product_normalized]["issues"].append(quantity)
-            product_data[product_normalized]["total_returns"] += return_qty
-            product_data[product_normalized]["total_payment"] += payment
-        
+    # Fetch salesman data and inventory data for PDF
+    try:
+        conn = sqlite3.connect("salesman.db")
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT product, load1, load2, load1+load2 AS totalload, return, load1+load2-return AS sales, payment
+            FROM salesman 
+            WHERE name = ? 
+            """,
+            (selected_name,)
+        )
+        rows = cursor.fetchall()
 
-        # Generate table in the PDF
-        pdf.ln(10)
-        pdf.set_font("Arial", size=10, style='B')  # Reduced font size for the table headers
+        # Write data to the PDF
+        for row in rows:
+            product = row[0]
+            # Fetch price per kg for the current product from the inventory
+            conn = sqlite3.connect("inventory.db")
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT price_per_kg FROM inventory WHERE name = ?",
+                (product,)
+            )
+            price_per_kg = cursor.fetchone()
+            rate = price_per_kg[0] if price_per_kg else 0.0  # Default to 0.0 if no price is found
 
-        pdf.cell(35, 8, "Product", border=1, align='C')  # Reduced width
-        for i in range(1, len(max(product_data.values(), key=lambda x: len(x["issues"]))["issues"]) + 1):
-            pdf.cell(20, 8, f"Issue {i}", border=1, align='C')  # Reduced width
-        pdf.cell(20, 8, "T.Issues", border=1, align='C')  # Adjusted width
-        pdf.cell(20, 8, "Returns", border=1, align='C')  # Single column for total returns
-        pdf.cell(20, 8, "Rate", border=1, align='C')  # Rate column
-        pdf.cell(20, 8, "Sales", border=1, align='C')  # Sales column
-        pdf.cell(35, 8, "Total Payment", border=1, align='C')
-        pdf.ln()
-
-        # Populate table rows
-        pdf.set_font("Arial", size=10)  # Reduced font size for the table rows
-        for product, details in product_data.items():
-            pdf.cell(35, 8, product, border=1, align='C')  # Adjusted width for the Product column
-
-            total_issues = 0
-            for issue_qty in details["issues"]:
-                total_issues += issue_qty
-                pdf.cell(20, 8, str(issue_qty), border=1, align='C')  # Adjusted width for Issue columns
-
-            for _ in range(len(details["issues"]), len(max(product_data.values(), key=lambda x: len(x["issues"]))["issues"])):
-                pdf.cell(20, 8, "", border=1, align='C')  # Empty cells for missing issues
-
-            pdf.cell(20, 8, str(total_issues), border=1, align='C')  # Total issues column
-
-            pdf.cell(20, 8, str(details["total_returns"]), border=1, align='C')  # Total returns column
-
-            # Fetch rate from inventory
-            cursor_inventory.execute("SELECT price_per_kg FROM inventory WHERE LOWER(name) = LOWER(?)", (product,))
-            result = cursor_inventory.fetchone()
-            rate = f"Rs.{result[0]:.2f}" if result else "N/A"
-            pdf.cell(20, 8, rate, border=1, align='C')  # Rate column
-
-            # Calculate sales
-            sales = total_issues - details["total_returns"]
-            pdf.cell(20, 8, str(sales), border=1, align='C')  # Sales column
-
-            adjusted_payment = details["total_payment"] if result else 0
-            pdf.cell(35, 8, f"Rs.{adjusted_payment:.2f}", border=1, align='C')  # Adjusted width
+            # Add product data to the table, including the rate and payment with Rs
+            row_data = list(row)  # Convert tuple to list to modify it
+            row_data.insert(6, f"Rs {rate:.2f}")  # Insert rate with Rs
+            row_data.insert(7,f"Rs {row_data[7]:.2f}")  # Append payment with Rs
+            
+            # Add each item to the PDF table
+            for item, width in zip(row_data, column_widths):
+                pdf.cell(width, 10, txt=str(item), border=1, align="C")
             pdf.ln()
 
-        try:
-            # Save the PDF
-            pdf.output(pdf_path)
-            print(f"Salesman report for {salesman_name} saved at {pdf_path}")
-        except OSError as e:
-            error_message = f"Error saving report for {salesman_name} at {pdf_path}: {e}"
-            print(error_message)  # Log to console
-            messagebox.showerror("File Save Error", error_message)  # Show error dialog
+        conn.close()
 
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", f"An error occurred: {e}")
+        return
 
-    # Close the database connections
-    conn_salesman.close()
-    conn_inventory.close()
+    # Output the PDF to the specified path
+    pdf.output(pdf_path)
+
+    return pdf_path
