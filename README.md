@@ -107,7 +107,7 @@ This project is released under the MIT License. See the LICENSE file for details
 ## 📬 Contact
 
 GitHub: @ABDmalik6605  
-Email: your-email@example.com
+Email: abdullahmalik4641@gmail.com
 
 ---
 
