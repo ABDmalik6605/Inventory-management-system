@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from inventory import InventoryManager
+from app.inventory_manager import InventoryManager
 
 class InventoryApp:
     def __init__(self, root):
