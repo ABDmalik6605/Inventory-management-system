@@ -1,4 +1,4 @@
-# Python
+# Python bytecode and cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,6 +19,9 @@ dist/
 .eggs/
 pip-wheel-metadata/
 
+# PyInstaller spec files
+*.spec
+
 # Tooling caches
 .pytest_cache/
 .mypy_cache/
@@ -36,7 +39,10 @@ coverage.xml
 *.db-journal
 *.sqlite3
 !inventory.db
-SalesmanData/
+
+# Icon files (except app_icon.ico)
+*.ico
+!app_icon.ico
 
 # Logs
 *.log
@@ -49,4 +55,7 @@ desktop.ini
 # Reports/artifacts
 *.pdf
 
+# Custom folders
+SalesmanData/
 
+app/

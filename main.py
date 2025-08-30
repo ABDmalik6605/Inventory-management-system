@@ -6,7 +6,7 @@ from app.db import init_db
 def main():
     # Initialize main window
     root = tk.Tk()
-    root.title("Inventory Management")
+    root.title("Inventory Management System")
     root.geometry("800x600")
 
     # Set up the database
