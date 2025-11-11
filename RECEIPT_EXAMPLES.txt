@@ -1,0 +1,323 @@
+===============================================================================
+                        RECEIPT EXAMPLES
+           Sample Receipts from the System
+===============================================================================
+
+EXAMPLE 1: SIMPLE SINGLE-ITEM RECEIPT
+============================================================
+         Inventory Management Store
+            123 Business Street
+            City, State 12345
+         Tel: (123) 456-7890
+      Email: info@inventorystore.com
+============================================================
+
+INVOICE NUMBER: INV-20241111-1001
+DATE: 2024-11-11 10:30:45
+CUSTOMER: Walk-in Customer
+------------------------------------------------------------
+
+ITEM                          QTY      PRICE        TOTAL
+------------------------------------------------------------
+Apple                           5      $3.00       $15.00
+------------------------------------------------------------
+SUBTOTAL:                                         $15.00
+============================================================
+GRAND TOTAL:                                      $15.00
+============================================================
+
+           Thank you for your business!
+              Please come again!
+============================================================
+
+
+EXAMPLE 2: MULTI-ITEM RECEIPT
+============================================================
+         Inventory Management Store
+            123 Business Street
+            City, State 12345
+         Tel: (123) 456-7890
+      Email: info@inventorystore.com
+============================================================
+
+INVOICE NUMBER: INV-20241111-1002
+DATE: 2024-11-11 11:15:22
+CUSTOMER: John Smith
+------------------------------------------------------------
+
+ITEM                          QTY      PRICE        TOTAL
+------------------------------------------------------------
+Apple                          10      $3.00       $30.00
+Banana                         15      $2.50       $37.50
+Orange                          8      $4.00       $32.00
+Mango                           5      $5.50       $27.50
+------------------------------------------------------------
+SUBTOTAL:                                        $127.00
+============================================================
+GRAND TOTAL:                                     $127.00
+============================================================
+
+           Thank you for your business!
+              Please come again!
+============================================================
+
+
+EXAMPLE 3: BULK ORDER WITH CUSTOM CUSTOMER
+============================================================
+         Inventory Management Store
+            123 Business Street
+            City, State 12345
+         Tel: (123) 456-7890
+      Email: info@inventorystore.com
+============================================================
+
+INVOICE NUMBER: INV-20241111-1003
+DATE: 2024-11-11 14:45:10
+CUSTOMER: ABC Restaurant Supplies
+------------------------------------------------------------
+
+ITEM                          QTY      PRICE        TOTAL
+------------------------------------------------------------
+Tomato                         50      $1.75       $87.50
+Onion                          40      $1.50       $60.00
+Potato                        100      $1.25      $125.00
+Carrot                         30      $2.00       $60.00
+Lettuce                        25      $2.50       $62.50
+------------------------------------------------------------
+SUBTOTAL:                                        $395.00
+============================================================
+GRAND TOTAL:                                     $395.00
+============================================================
+
+           Thank you for your business!
+              Please come again!
+============================================================
+
+
+EXAMPLE 4: RECEIPT WITH TAX (if enabled)
+============================================================
+         Inventory Management Store
+            123 Business Street
+            City, State 12345
+         Tel: (123) 456-7890
+      Email: info@inventorystore.com
+============================================================
+
+INVOICE NUMBER: INV-20241111-1004
+DATE: 2024-11-11 16:20:33
+CUSTOMER: Jane Doe
+------------------------------------------------------------
+
+ITEM                          QTY      PRICE        TOTAL
+------------------------------------------------------------
+Chicken                         5     $12.00       $60.00
+Beef                            3     $15.00       $45.00
+Fish                            4     $10.00       $40.00
+------------------------------------------------------------
+SUBTOTAL:                                        $145.00
+TAX (8.0%):                                       $11.60
+============================================================
+GRAND TOTAL:                                     $156.60
+============================================================
+
+           Thank you for your business!
+              Please come again!
+============================================================
+
+
+EXAMPLE 5: MIXED PRODUCTS RECEIPT
+============================================================
+         Inventory Management Store
+            123 Business Street
+            City, State 12345
+         Tel: (123) 456-7890
+      Email: info@inventorystore.com
+============================================================
+
+INVOICE NUMBER: INV-20241111-1005
+DATE: 2024-11-11 17:55:18
+CUSTOMER: City Market
+------------------------------------------------------------
+
+ITEM                          QTY      PRICE        TOTAL
+------------------------------------------------------------
+Apple                          20      $3.00       $60.00
+Orange juice                   12      $4.50       $54.00
+Bread                          15      $2.00       $30.00
+Milk                           10      $3.50       $35.00
+Eggs                           24      $0.50       $12.00
+Butter                          8      $4.00       $32.00
+Cheese                          6      $6.00       $36.00
+------------------------------------------------------------
+SUBTOTAL:                                        $259.00
+============================================================
+GRAND TOTAL:                                     $259.00
+============================================================
+
+           Thank you for your business!
+              Please come again!
+============================================================
+
+
+===============================================================================
+                        HOW TO CREATE THESE RECEIPTS
+===============================================================================
+
+EXAMPLE 1: Single Item Receipt
+1. Enter Product ID: 1
+2. Fetch Details
+3. Quantity: 5
+4. Selling Price: 3.00
+5. Add to Cart
+6. Generate Receipt
+
+EXAMPLE 2: Multi-Item Receipt
+1. Add Item 1: ID=1, Qty=10, Price=3.00
+2. Add Item 2: ID=2, Qty=15, Price=2.50
+3. Add Item 3: ID=3, Qty=8, Price=4.00
+4. Add Item 4: ID=4, Qty=5, Price=5.50
+5. Customer Name: "John Smith"
+6. Generate Receipt
+
+EXAMPLE 3: Bulk Order
+1. Add Item 1: ID=5, Qty=50, Price=1.75
+2. Add Item 2: ID=6, Qty=40, Price=1.50
+3. Add Item 3: ID=7, Qty=100, Price=1.25
+4. Add Item 4: ID=8, Qty=30, Price=2.00
+5. Add Item 5: ID=9, Qty=25, Price=2.50
+6. Customer Name: "ABC Restaurant Supplies"
+7. Generate Receipt
+
+===============================================================================
+                        INVOICE NUMBER PATTERNS
+===============================================================================
+
+Format: INV-YYYYMMDD-XXXX
+
+Examples:
+- INV-20241111-1001  → Nov 11, 2024, receipt #1001
+- INV-20241111-1234  → Nov 11, 2024, receipt #1234
+- INV-20241112-5678  → Nov 12, 2024, receipt #5678
+- INV-20250101-0001  → Jan 1, 2025, receipt #0001
+
+Benefits:
+✓ Easy to identify date
+✓ Sortable chronologically
+✓ Unique across all receipts
+✓ Professional appearance
+✓ Human-readable format
+
+===============================================================================
+                        RECEIPT FIELDS EXPLAINED
+===============================================================================
+
+HEADER SECTION:
+- Company Name: Your business name
+- Address: Physical location
+- Contact Info: Phone and email
+
+INVOICE DETAILS:
+- Invoice Number: Unique identifier (INV-YYYYMMDD-XXXX)
+- Date: Transaction date and time
+- Customer: Name of buyer (default: "Walk-in Customer")
+
+ITEMS SECTION:
+- Item Name: Product description
+- Qty: Quantity purchased
+- Price: Price per unit
+- Total: Line total (Qty × Price)
+
+FOOTER SECTION:
+- Subtotal: Sum of all item totals
+- Tax: Tax amount (if applicable)
+- Grand Total: Final amount (Subtotal + Tax)
+- Thank you message
+
+===============================================================================
+                        CUSTOMIZATION IDEAS
+===============================================================================
+
+You can customize:
+
+1. COMPANY INFO (receipt_generator.py):
+   - Company name
+   - Address and city
+   - Phone number
+   - Email address
+   - Website URL
+
+2. RECEIPT LAYOUT:
+   - Column widths
+   - Font styles
+   - Spacing and padding
+   - Header/footer messages
+
+3. TAX SETTINGS (receipt_manager.py):
+   - Tax rate (0.0 to 1.0)
+   - Tax display format
+   - Tax calculation method
+
+4. MESSAGES:
+   - Custom thank you messages
+   - Promotional text
+   - Return policy
+   - Terms and conditions
+
+===============================================================================
+                        TIPS FOR PROFESSIONAL RECEIPTS
+===============================================================================
+
+DO:
+✓ Keep company info current
+✓ Use clear, readable format
+✓ Include all required details
+✓ Double-check amounts
+✓ Save receipts for records
+✓ Use descriptive product names
+✓ Include customer names when possible
+
+DON'T:
+✗ Overload with information
+✗ Use unclear abbreviations
+✗ Forget tax information (if required)
+✗ Use unprofessional language
+✗ Omit contact information
+✗ Make receipts too long or complicated
+
+===============================================================================
+                        RECEIPT USE CASES
+===============================================================================
+
+RETAIL STORE:
+- Quick walk-in sales
+- Customer name optional
+- Multiple items common
+- Save for returns/exchanges
+
+RESTAURANT/CAFE:
+- Fast service
+- Table/order number as customer
+- Usually single receipt per table
+- Payment method tracking
+
+WHOLESALE BUSINESS:
+- Large quantities
+- Always include customer name
+- Delivery details
+- Payment terms
+
+SERVICE BUSINESS:
+- Service description as "items"
+- Labor + materials
+- Customer details required
+- Invoice for payment
+
+===============================================================================
+
+For more examples and usage instructions, see:
+- QUICK_START_RECEIPT.md
+- RECEIPT_SYSTEM_GUIDE.md
+- RECEIPT_SYSTEM_SUMMARY.md
+
+===============================================================================
+

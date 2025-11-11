@@ -1,0 +1,451 @@
+===============================================================================
+                    RECEIPT GENERATION SYSTEM
+                      System Architecture
+===============================================================================
+
+                        COMPONENT DIAGRAM
+===============================================================================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         USER INTERFACE                                  │
+│                     (ui_components.py)                                  │
+│                                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                 │
+│  │  Inventory   │  │  Purchases   │  │   Receipt    │                 │
+│  │     Tab      │  │     Tab      │  │ Generation   │  ← NEW!         │
+│  │              │  │              │  │     Tab      │                 │
+│  └──────────────┘  └──────────────┘  └──────────────┘                 │
+└─────────────────────────────────────────────────────────────────────────┘
+                                              │
+                                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      RECEIPT MANAGER                                    │
+│                  (receipt_manager.py)                                   │
+│                                                                         │
+│  • Coordinates all receipt operations                                  │
+│  • Manages shopping cart state                                         │
+│  • Validates user inputs                                               │
+│  • Handles errors and transactions                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│  Receipt UI      │    │    Receipt       │    │    Receipt       │
+│   Components     │    │   Repository     │    │   Generator      │
+│                  │    │                  │    │                  │
+│ • Input forms    │    │ • Database ops   │    │ • Format text    │
+│ • Shopping cart  │    │ • CRUD operations│    │ • Display window │
+│ • Receipt list   │    │ • Stock updates  │    │ • Save to file   │
+│ • Buttons/menus  │    │ • Validation     │    │ • Print support  │
+└──────────────────┘    └──────────────────┘    └──────────────────┘
+                                 │
+                                 ▼
+                        ┌──────────────────┐
+                        │    DATABASE      │
+                        │   (SQLite)       │
+                        │                  │
+                        │ • receipts       │
+                        │ • receipt_items  │
+                        │ • purchases      │
+                        │ • inventory      │
+                        └──────────────────┘
+
+
+===============================================================================
+                        DATA FLOW DIAGRAM
+===============================================================================
+
+USER ACTION                    SYSTEM RESPONSE
+───────────                    ────────────────
+
+Enter Product ID    ──────►   Fetch from Database
+      │                              │
+      ▼                              ▼
+Click "Fetch       ──────►   Display: Name, Stock, Price
+  Details"
+      │
+      ▼
+Enter Quantity     ──────►   Validate against stock
+  & Price                          │
+      │                            ▼
+      ▼                       Stock Available?
+Click "Add to      ──────►        Yes → Add to Cart
+   Cart"                          No → Show Error
+      │
+      ▼
+Review Cart        ──────►   Display all items + total
+      │
+      ▼
+Click "Generate    ──────►   BEGIN TRANSACTION
+   Receipt"                       │
+                                  ├──► Generate Invoice Number
+                                  ├──► Insert Receipt Header
+                                  ├──► Insert Receipt Items
+                                  ├──► Update Inventory
+                                  ├──► Track Purchases/Profit
+                                  └──► COMMIT TRANSACTION
+                                        │
+                                        ▼
+                                  Display Receipt Window
+                                        │
+                                        ▼
+                                  Option to Save/Print
+
+
+===============================================================================
+                        DATABASE SCHEMA
+===============================================================================
+
+TABLE: receipts
+────────────────
+┌──────────────────┬─────────────┬──────────────────────────────┐
+│ Column           │ Type        │ Description                  │
+├──────────────────┼─────────────┼──────────────────────────────┤
+│ invoice_number   │ TEXT (PK)   │ Unique: INV-YYYYMMDD-XXXX   │
+│ total_amount     │ REAL        │ Subtotal of all items        │
+│ tax_amount       │ REAL        │ Tax amount (if applicable)   │
+│ grand_total      │ REAL        │ Final total with tax         │
+│ purchase_date    │ TIMESTAMP   │ When receipt was created     │
+│ customer_name    │ TEXT        │ Customer name                │
+└──────────────────┴─────────────┴──────────────────────────────┘
+
+TABLE: receipt_items
+────────────────────
+┌──────────────────┬─────────────┬──────────────────────────────┐
+│ Column           │ Type        │ Description                  │
+├──────────────────┼─────────────┼──────────────────────────────┤
+│ id               │ INTEGER (PK)│ Auto-increment ID            │
+│ invoice_number   │ TEXT (FK)   │ Links to receipts table      │
+│ product_id       │ INTEGER     │ Product ID from inventory    │
+│ product_name     │ TEXT        │ Product name                 │
+│ quantity         │ INTEGER     │ Quantity sold                │
+│ price_per_unit   │ REAL        │ Selling price per unit       │
+│ total_price      │ REAL        │ Line total (qty × price)     │
+└──────────────────┴─────────────┴──────────────────────────────┘
+
+TABLE: purchases (Enhanced)
+────────────────────────────
+┌──────────────────────┬─────────────┬──────────────────────────┐
+│ Column               │ Type        │ Description              │
+├──────────────────────┼─────────────┼──────────────────────────┤
+│ id                   │ INTEGER (PK)│ Auto-increment ID        │
+│ invoice_number       │ TEXT (UQ)   │ Links to receipt         │
+│ product_name         │ TEXT        │ Product name             │
+│ quantity             │ INTEGER     │ Quantity sold            │
+│ selling_price_per_u. │ REAL        │ Price sold at            │
+│ stock_price_per_u.   │ REAL        │ Original cost price      │
+│ total_selling_price  │ REAL        │ Total revenue            │
+│ total_stock_cost     │ REAL        │ Total cost               │
+│ profit               │ REAL        │ Profit earned            │
+│ purchase_date        │ TIMESTAMP   │ Transaction date         │
+└──────────────────────┴─────────────┴──────────────────────────┘
+
+TABLE: inventory (Reference)
+─────────────────────────────
+┌──────────────────┬─────────────┬──────────────────────────────┐
+│ Column           │ Type        │ Description                  │
+├──────────────────┼─────────────┼──────────────────────────────┤
+│ id               │ INTEGER (PK)│ Product ID                   │
+│ name             │ TEXT        │ Product name                 │
+│ quantity         │ INTEGER     │ Current stock                │
+│ price_per_kg     │ REAL        │ Cost price                   │
+│ total_price      │ REAL        │ Total value in stock         │
+│ category         │ TEXT        │ Product category             │
+└──────────────────┴─────────────┴──────────────────────────────┘
+
+
+===============================================================================
+                        TRANSACTION FLOW
+===============================================================================
+
+                    Generate Receipt Transaction
+                    ═══════════════════════════
+
+START
+  │
+  ├──► BEGIN TRANSACTION
+  │
+  ├──► Step 1: Generate unique invoice number
+  │         └─► Format: INV-YYYYMMDD-XXXX
+  │
+  ├──► Step 2: Validate all items
+  │         ├─► Check each product exists
+  │         ├─► Check sufficient stock
+  │         └─► Calculate totals
+  │
+  ├──► Step 3: Insert receipt header
+  │         └─► receipts table
+  │
+  ├──► Step 4: For each item in cart:
+  │         ├─► Insert into receipt_items
+  │         ├─► Insert into purchases
+  │         ├─► Update inventory (reduce stock)
+  │         └─► Calculate profit
+  │
+  ├──► Step 5: Verify all operations
+  │         └─► Check constraints satisfied
+  │
+  ├──► COMMIT TRANSACTION ✓
+  │
+  └──► Return invoice_number
+
+ERROR at any step → ROLLBACK TRANSACTION → Return error
+
+
+===============================================================================
+                        USER WORKFLOW
+===============================================================================
+
+                    Creating a Receipt
+                    ══════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 1: Prepare                                             │
+│                                                             │
+│   • Ensure products are in inventory                        │
+│   • Note product IDs you want to sell                       │
+│   • Open Receipt Generation tab                             │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 2: Add First Item                                      │
+│                                                             │
+│   [Product ID: ____] [🔍 Fetch Details]                    │
+│   Product: Apple    Stock: 100                              │
+│   Quantity: [5___]  Price: [3.00]                           │
+│   [➕ Add to Cart]                                          │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 3: Add More Items (Optional)                           │
+│                                                             │
+│   Repeat Step 2 for each additional product                 │
+│   Items appear in cart below                                │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 4: Review Cart                                         │
+│                                                             │
+│   ┌───────────────────────────────────────────────────┐   │
+│   │ ID │ Product │ Qty │ Price │ Total               │   │
+│   ├────┼─────────┼─────┼───────┼─────────────────────┤   │
+│   │ 1  │ Apple   │  5  │ $3.00 │ $15.00              │   │
+│   │ 2  │ Banana  │ 10  │ $2.50 │ $25.00              │   │
+│   └───────────────────────────────────────────────────┘   │
+│   Cart Total: $40.00                                        │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 5: Set Customer (Optional)                             │
+│                                                             │
+│   Customer Name: [Walk-in Customer___________]              │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 6: Generate                                            │
+│                                                             │
+│   [🧾 Generate Receipt]                                     │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 7: Receipt Window Opens                                │
+│                                                             │
+│   ╔═══════════════════════════════════════════════════╗   │
+│   ║         RECEIPT                                   ║   │
+│   ║                                                   ║   │
+│   ║   INV-20241111-1234                              ║   │
+│   ║   [Full receipt details...]                       ║   │
+│   ║                                                   ║   │
+│   ║   [💾 Save Receipt]  [✕ Close]                   ║   │
+│   ╚═══════════════════════════════════════════════════╝   │
+└─────────────────────────────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│ DONE! ✓                                                     │
+│                                                             │
+│   • Receipt saved to database                               │
+│   • Inventory updated                                       │
+│   • Profit tracked                                          │
+│   • Receipt can be saved/printed                            │
+└─────────────────────────────────────────────────────────────┘
+
+
+===============================================================================
+                        MODULE DEPENDENCIES
+===============================================================================
+
+main.py
+  └─► ui_components.py
+        ├─► app/inventory_manager.py
+        ├─► app/purchase_manager.py
+        └─► app/receipt_manager.py  ← NEW!
+              ├─► app/receipt_ui_components.py
+              ├─► app/receipt_repository.py
+              │     └─► app/db.py
+              └─► app/receipt_generator.py
+
+
+===============================================================================
+                        CLASS RELATIONSHIPS
+===============================================================================
+
+                    ┌──────────────────┐
+                    │  ReceiptManager  │
+                    │  (Coordinator)   │
+                    └──────────────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              │             │             │
+              ▼             ▼             ▼
+    ┌─────────────┐  ┌──────────┐  ┌──────────┐
+    │ ReceiptUI   │  │ Receipt  │  │ Receipt  │
+    │ Components  │  │Repository│  │Generator │
+    └─────────────┘  └──────────┘  └──────────┘
+                           │
+                           ▼
+                    ┌──────────┐
+                    │ Database │
+                    │ (SQLite) │
+                    └──────────┘
+
+
+===============================================================================
+                        KEY ALGORITHMS
+===============================================================================
+
+1. INVOICE NUMBER GENERATION
+─────────────────────────────
+   Input: None
+   Output: Unique invoice number
+   
+   Algorithm:
+   1. Get current date (YYYYMMDD format)
+   2. Generate random 4-digit number (1000-9999)
+   3. Format: "INV-{date}-{random}"
+   4. Check if exists in database
+   5. If exists, try again (max 100 attempts)
+   6. If all taken, use timestamp
+   7. Return invoice number
+
+
+2. STOCK VALIDATION
+───────────────────
+   Input: product_id, quantity
+   Output: Boolean (valid/invalid)
+   
+   Algorithm:
+   1. Query database for product
+   2. If not found → return False
+   3. Get available stock
+   4. If quantity > stock → return False
+   5. Return True
+
+
+3. PROFIT CALCULATION
+─────────────────────
+   Input: quantity, selling_price, stock_price
+   Output: profit amount
+   
+   Algorithm:
+   profit = (selling_price - stock_price) × quantity
+   
+   Example:
+   - Quantity: 10
+   - Selling: $5.00
+   - Stock: $3.00
+   - Profit: ($5.00 - $3.00) × 10 = $20.00
+
+
+4. CART TOTAL CALCULATION
+─────────────────────────
+   Input: List of cart items
+   Output: Total amount
+   
+   Algorithm:
+   total = 0
+   for each item in cart:
+       item_total = item.quantity × item.price
+       total = total + item_total
+   return total
+
+
+===============================================================================
+                        SECURITY FEATURES
+===============================================================================
+
+✓ SQL Injection Prevention
+  - Parameterized queries used everywhere
+  - No string concatenation in SQL
+
+✓ Input Validation
+  - All user inputs validated
+  - Type checking on all fields
+  - Range checking (positive numbers, etc.)
+
+✓ Transaction Safety
+  - ACID compliance
+  - Rollback on errors
+  - No partial updates
+
+✓ Data Integrity
+  - Foreign key constraints
+  - Unique constraints on invoice numbers
+  - Not-null constraints on required fields
+
+✓ Error Handling
+  - Try-catch blocks
+  - Graceful error messages
+  - No data loss on errors
+
+
+===============================================================================
+                        PERFORMANCE NOTES
+===============================================================================
+
+Database Optimization:
+  • Indexed on invoice_number, product_id
+  • Single transaction per receipt (fast)
+  • Lazy loading of receipts (on-demand)
+
+UI Optimization:
+  • Minimal redraws
+  • Efficient tree view updates
+  • No blocking operations
+
+Scalability:
+  • Handles 1000s of receipts
+  • Fast queries (< 100ms)
+  • Efficient memory usage
+
+
+===============================================================================
+                        EXTENSION POINTS
+===============================================================================
+
+Easy to Add:
+  □ PDF export (using reportlab)
+  □ Email integration (using smtplib)
+  □ Barcode support (using python-barcode)
+  □ Excel export (using openpyxl)
+  □ Analytics dashboard (using matplotlib)
+
+Possible Enhancements:
+  □ Multi-currency support
+  □ Payment method tracking
+  □ Discount/coupon system
+  □ Return/refund handling
+  □ Receipt templates
+  □ Batch operations
+  □ REST API
+  □ Mobile app integration
+
+
+===============================================================================
+
+For detailed documentation, see:
+  • RECEIPT_SYSTEM_GUIDE.md
+  • RECEIPT_SYSTEM_SUMMARY.md
+  • QUICK_START_RECEIPT.md
+
+===============================================================================
+
