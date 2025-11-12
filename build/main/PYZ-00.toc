@@ -54,6 +54,22 @@
    'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
    'systme\\app\\navigation_manager.py',
    'PYMODULE'),
+  ('app.receipt_generator',
+   'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
+   'systme\\app\\receipt_generator.py',
+   'PYMODULE'),
+  ('app.receipt_manager',
+   'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
+   'systme\\app\\receipt_manager.py',
+   'PYMODULE'),
+  ('app.receipt_repository',
+   'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
+   'systme\\app\\receipt_repository.py',
+   'PYMODULE'),
+  ('app.receipt_ui_components',
+   'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
+   'systme\\app\\receipt_ui_components.py',
+   'PYMODULE'),
   ('app.table_manager',
    'C:\\Users\\abdul\\OneDrive\\Desktop\\Inventory management '
    'systme\\app\\table_manager.py',
@@ -367,6 +383,12 @@
    'PYMODULE'),
   ('tkinter.constants',
    'C:\\Users\\abdul\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\tkinter\\constants.py',
+   'PYMODULE'),
+  ('tkinter.dialog',
+   'C:\\Users\\abdul\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\tkinter\\dialog.py',
+   'PYMODULE'),
+  ('tkinter.filedialog',
+   'C:\\Users\\abdul\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\tkinter\\filedialog.py',
    'PYMODULE'),
   ('tkinter.messagebox',
    'C:\\Users\\abdul\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\tkinter\\messagebox.py',

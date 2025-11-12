@@ -1123,6 +1123,10 @@ imported by:
  &#8226;   <a href="#app.inventory_manager">app.inventory_manager</a>
  &#8226;   <a href="#app.inventory_repository">app.inventory_repository</a>
  &#8226;   <a href="#app.navigation_manager">app.navigation_manager</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#app.receipt_manager">app.receipt_manager</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
+ &#8226;   <a href="#app.receipt_ui_components">app.receipt_ui_components</a>
  &#8226;   <a href="#app.table_manager">app.table_manager</a>
  &#8226;   <a href="#app.ui_components">app.ui_components</a>
 
@@ -1139,6 +1143,7 @@ imports:
  &#8226;   <a href="#sqlite3">sqlite3</a>
  &#8226;   <a href="#tkinter">tkinter</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
+ &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
 
   </div>
   <div class="import">
@@ -1163,6 +1168,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#app.inventory_repository">app.inventory_repository</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
  &#8226;   <a href="#main.py">main.py</a>
 
   </div>
@@ -1225,6 +1231,89 @@ imports:
   <div class="import">
 imported by:
     <a href="#app.inventory_manager">app.inventory_manager</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.receipt_generator"></a>
+  <a target="code" href="///C:/Users/abdul/OneDrive/Desktop/Inventory%20management%20systme/app/receipt_generator.py" type="text/plain"><tt>app.receipt_generator</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#app">app</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
+ &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.receipt_manager">app.receipt_manager</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.receipt_manager"></a>
+  <a target="code" href="///C:/Users/abdul/OneDrive/Desktop/Inventory%20management%20systme/app/receipt_manager.py" type="text/plain"><tt>app.receipt_manager</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#app">app</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
+ &#8226;   <a href="#app.receipt_ui_components">app.receipt_ui_components</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
+ &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#ui_components">ui_components</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.receipt_repository"></a>
+  <a target="code" href="///C:/Users/abdul/OneDrive/Desktop/Inventory%20management%20systme/app/receipt_repository.py" type="text/plain"><tt>app.receipt_repository</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#app">app</a>
+ &#8226;   <a href="#app.db">app.db</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#random">random</a>
+ &#8226;   <a href="#sqlite3">sqlite3</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.receipt_manager">app.receipt_manager</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.receipt_ui_components"></a>
+  <a target="code" href="///C:/Users/abdul/OneDrive/Desktop/Inventory%20management%20systme/app/receipt_ui_components.py" type="text/plain"><tt>app.receipt_ui_components</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#app">app</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
+ &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.receipt_manager">app.receipt_manager</a>
 
   </div>
 
@@ -1880,6 +1969,8 @@ imports:
   <div class="import">
 imported by:
     <a href="#_strptime">_strptime</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
  &#8226;   <a href="#calendar">calendar</a>
  &#8226;   <a href="#email.utils">email.utils</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
@@ -4969,6 +5060,7 @@ imports:
 imported by:
     <a href="#glob">glob</a>
  &#8226;   <a href="#shutil">shutil</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
  &#8226;   <a href="#tracemalloc">tracemalloc</a>
 
   </div>
@@ -6022,6 +6114,7 @@ imported by:
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#main.py">main.py</a>
  &#8226;   <a href="#subprocess">subprocess</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
 
   </div>
 
@@ -6243,6 +6336,7 @@ imported by:
     <a href="#_colorize">_colorize</a>
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#app.db">app.db</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#bz2">bz2</a>
  &#8226;   <a href="#contextlib">contextlib</a>
@@ -6278,6 +6372,7 @@ imported by:
  &#8226;   <a href="#tempfile">tempfile</a>
  &#8226;   <a href="#threading">threading</a>
  &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
  &#8226;   <a href="#zipfile">zipfile</a>
  &#8226;   <a href="#zipfile._path.glob">zipfile._path.glob</a>
 
@@ -6555,7 +6650,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#email.generator">email.generator</a>
+    <a href="#app.receipt_repository">app.receipt_repository</a>
+ &#8226;   <a href="#email.generator">email.generator</a>
  &#8226;   <a href="#email.utils">email.utils</a>
  &#8226;   <a href="#statistics">statistics</a>
  &#8226;   <a href="#tempfile">tempfile</a>
@@ -6893,6 +6989,7 @@ imported by:
     <a href="#app.data_operations">app.data_operations</a>
  &#8226;   <a href="#app.db">app.db</a>
  &#8226;   <a href="#app.inventory_repository">app.inventory_repository</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
  &#8226;   <a href="#sqlite3">sqlite3</a>
  &#8226;   <a href="#sqlite3.__main__">sqlite3.__main__</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
@@ -7388,6 +7485,7 @@ imports:
  &#8226;   <a href="#re">re</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#tkinter.constants">tkinter.constants</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
  &#8226;   <a href="#tkinter.simpledialog">tkinter.simpledialog</a>
  &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
@@ -7400,11 +7498,16 @@ imported by:
     <a href="#app.data_operations">app.data_operations</a>
  &#8226;   <a href="#app.inventory_manager">app.inventory_manager</a>
  &#8226;   <a href="#app.navigation_manager">app.navigation_manager</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#app.receipt_manager">app.receipt_manager</a>
+ &#8226;   <a href="#app.receipt_ui_components">app.receipt_ui_components</a>
  &#8226;   <a href="#app.table_manager">app.table_manager</a>
  &#8226;   <a href="#app.ui_components">app.ui_components</a>
  &#8226;   <a href="#main.py">main.py</a>
  &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
  &#8226;   <a href="#tkinter.constants">tkinter.constants</a>
+ &#8226;   <a href="#tkinter.dialog">tkinter.dialog</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
  &#8226;   <a href="#tkinter.simpledialog">tkinter.simpledialog</a>
  &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
@@ -7424,7 +7527,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#tkinter.messagebox">tkinter.messagebox</a>
+    <a href="#tkinter.filedialog">tkinter.filedialog</a>
+ &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
 
   </div>
 
@@ -7447,6 +7551,45 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="tkinter.dialog"></a>
+  <a target="code" href="///C:/Users/abdul/AppData/Local/Programs/Python/Python313/Lib/tkinter/dialog.py" type="text/plain"><tt>tkinter.dialog</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#tkinter">tkinter</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#tkinter.filedialog">tkinter.filedialog</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="tkinter.filedialog"></a>
+  <a target="code" href="///C:/Users/abdul/AppData/Local/Programs/Python/Python313/Lib/tkinter/filedialog.py" type="text/plain"><tt>tkinter.filedialog</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#fnmatch">fnmatch</a>
+ &#8226;   <a href="#locale">locale</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
+ &#8226;   <a href="#tkinter.dialog">tkinter.dialog</a>
+ &#8226;   <a href="#tkinter.simpledialog">tkinter.simpledialog</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="tkinter.messagebox"></a>
   <a target="code" href="///C:/Users/abdul/AppData/Local/Programs/Python/Python313/Lib/tkinter/messagebox.py" type="text/plain"><tt>tkinter.messagebox</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -7459,6 +7602,9 @@ imports:
 imported by:
     <a href="#app.data_operations">app.data_operations</a>
  &#8226;   <a href="#app.navigation_manager">app.navigation_manager</a>
+ &#8226;   <a href="#app.receipt_generator">app.receipt_generator</a>
+ &#8226;   <a href="#app.receipt_manager">app.receipt_manager</a>
+ &#8226;   <a href="#app.receipt_ui_components">app.receipt_ui_components</a>
  &#8226;   <a href="#app.table_manager">app.table_manager</a>
  &#8226;   <a href="#tkinter">tkinter</a>
  &#8226;   <a href="#tkinter.simpledialog">tkinter.simpledialog</a>
@@ -7481,6 +7627,7 @@ imports:
 imported by:
     <a href="#app.navigation_manager">app.navigation_manager</a>
  &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
 
   </div>
 
@@ -7496,7 +7643,10 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#app.inventory_manager">app.inventory_manager</a>
+    <a href="#app.data_operations">app.data_operations</a>
+ &#8226;   <a href="#app.inventory_manager">app.inventory_manager</a>
+ &#8226;   <a href="#app.receipt_manager">app.receipt_manager</a>
+ &#8226;   <a href="#app.receipt_ui_components">app.receipt_ui_components</a>
  &#8226;   <a href="#app.table_manager">app.table_manager</a>
  &#8226;   <a href="#app.ui_components">app.ui_components</a>
  &#8226;   <a href="#main.py">main.py</a>
@@ -7667,6 +7817,7 @@ imports:
 imported by:
     <a href="#app.db">app.db</a>
  &#8226;   <a href="#app.inventory_repository">app.inventory_repository</a>
+ &#8226;   <a href="#app.receipt_repository">app.receipt_repository</a>
  &#8226;   <a href="#functools">functools</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#importlib.metadata._meta">importlib.metadata._meta</a>
@@ -7683,6 +7834,7 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#app.inventory_manager">app.inventory_manager</a>
+ &#8226;   <a href="#app.receipt_manager">app.receipt_manager</a>
  &#8226;   <a href="#tkinter">tkinter</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
  &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>

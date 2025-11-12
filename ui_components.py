@@ -46,6 +46,11 @@ class InventoryApp:
         style.configure('Search.TButton', background=secondary, foreground='white', padding=(12, 6))
         style.map('Search.TButton', background=[('active', '#4b5563'), ('pressed', '#4b5563')])
         style.configure('Outline.TButton', background=bg_app, foreground=secondary, padding=(10, 6))
+        # Danger button (red) for destructive/clear actions
+        danger = '#dc2626'
+        danger_active = '#b91c1c'
+        style.configure('Danger.TButton', background=danger, foreground='white', padding=(12, 6))
+        style.map('Danger.TButton', background=[('active', danger_active), ('pressed', danger_active)])
 
         # Configure tab style
         style.configure('TNotebook', background=bg_app, borderwidth=0)

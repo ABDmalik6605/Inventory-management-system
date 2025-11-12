@@ -10,12 +10,16 @@ class InventoryUIComponents:
     def setup_variables(self):
         """Initialize all UI variables"""
         self.product_name_var = tk.StringVar()
-        self.product_quantity_var = tk.IntVar()
-        self.product_price_var = tk.DoubleVar()
+        # Use StringVar for placeholders and manual parsing
+        self.product_quantity_var = tk.StringVar(value="")
+        self.product_price_var = tk.StringVar(value="")
         self.product_category_var = tk.StringVar()
         self.search_var = tk.StringVar()
         self.total_stock_var = tk.StringVar(value="0.00")
         self.total_sales_var = tk.StringVar(value="0.00")
+        # Placeholder texts
+        self.quantity_placeholder = "0"
+        self.price_placeholder = "0.0"
         
     def create_header_container(self, tab):
         """Create the header container with input fields"""
@@ -39,12 +43,15 @@ class InventoryUIComponents:
         self.product_name_entry.grid(row=0, column=1, padx=(0, 16), pady=4, sticky="ew")
 
         ttk.Label(input_frame, text="Stock", font=toolbar_font).grid(row=0, column=2, padx=(0, 6), pady=4, sticky="w")
-        self.product_quantity_entry = ttk.Entry(input_frame, textvariable=self.product_quantity_var, width=8, font=toolbar_font)
+        # Use tk.Entry to support placeholder color
+        self.product_quantity_entry = tk.Entry(input_frame, textvariable=self.product_quantity_var, width=8, font=toolbar_font)
         self.product_quantity_entry.grid(row=0, column=3, padx=(0, 16), pady=4, sticky="w")
+        self._install_placeholder(self.product_quantity_entry, self.product_quantity_var, self.quantity_placeholder)
 
         ttk.Label(input_frame, text="Unit Price", font=toolbar_font).grid(row=0, column=4, padx=(0, 6), pady=4, sticky="w")
-        self.product_price_entry = ttk.Entry(input_frame, textvariable=self.product_price_var, width=10, font=toolbar_font)
+        self.product_price_entry = tk.Entry(input_frame, textvariable=self.product_price_var, width=10, font=toolbar_font)
         self.product_price_entry.grid(row=0, column=5, padx=(0, 16), pady=4, sticky="w")
+        self._install_placeholder(self.product_price_entry, self.product_price_var, self.price_placeholder)
 
         ttk.Label(input_frame, text="Category", font=toolbar_font).grid(row=0, column=6, padx=(0, 6), pady=4, sticky="w")
         self.product_category_entry = ttk.Entry(input_frame, textvariable=self.product_category_var, width=14, font=toolbar_font)
@@ -104,6 +111,62 @@ class InventoryUIComponents:
     def clear_inputs(self):
         """Clear all input fields"""
         self.product_name_var.set("")
-        self.product_quantity_var.set(0)
-        self.product_price_var.set(0.0)
+        self.product_quantity_var.set("")
+        self.product_price_var.set("")
         self.product_category_var.set("")
+        # Re-apply placeholders immediately
+        self._apply_placeholders()
+
+    # --- Placeholder helpers ---
+    def _install_placeholder(self, entry, var, placeholder: str):
+        """Add placeholder behavior to an Entry using StringVar"""
+        # Initial state
+        if not var.get():
+            try:
+                entry.config(fg='#9ca3af')
+            except Exception:
+                pass
+            var.set(placeholder)
+        def on_focus_in(event):
+            if var.get() == placeholder:
+                var.set("")
+                try:
+                    entry.config(fg='#111827')
+                except Exception:
+                    pass
+            # Select all for quick overwrite
+            try:
+                entry.after(1, lambda: entry.select_range(0, tk.END))
+            except Exception:
+                pass
+        def on_focus_out(event):
+            if var.get().strip() == "":
+                var.set(placeholder)
+                try:
+                    entry.config(fg='#9ca3af')
+                except Exception:
+                    pass
+        def on_ctrl_a(event):
+            try:
+                entry.select_range(0, tk.END)
+            except Exception:
+                pass
+            return "break"
+        entry.bind("<FocusIn>", on_focus_in)
+        entry.bind("<FocusOut>", on_focus_out)
+        entry.bind("<Control-a>", on_ctrl_a)
+
+    def _apply_placeholders(self):
+        """Reset placeholders on quantity and price if empty."""
+        try:
+            if self.product_quantity_var.get().strip() == "":
+                self.product_quantity_var.set(self.quantity_placeholder)
+                self.product_quantity_entry.config(fg='#9ca3af')
+        except Exception:
+            pass
+        try:
+            if self.product_price_var.get().strip() == "":
+                self.product_price_var.set(self.price_placeholder)
+                self.product_price_entry.config(fg='#9ca3af')
+        except Exception:
+            pass

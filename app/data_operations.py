@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
+from tkinter import ttk
 
 class InventoryDataOperations:
     def __init__(self, inventory_manager):
@@ -9,12 +10,29 @@ class InventoryDataOperations:
     def add_item(self):
         """Add or update an item in the inventory"""
         name = self.inventory_manager.ui_components.product_name_var.get().strip().lower()
-        qty = self.inventory_manager.ui_components.product_quantity_var.get()
-        price_per_kg = self.inventory_manager.ui_components.product_price_var.get()
+        qty_str = str(self.inventory_manager.ui_components.product_quantity_var.get()).strip()
+        price_str = str(self.inventory_manager.ui_components.product_price_var.get()).strip()
         category = self.inventory_manager.ui_components.product_category_var.get().strip().lower()
 
-        if not name or qty is None or price_per_kg is None or name == "":
+        # Treat placeholders as empty
+        qty_ph = getattr(self.inventory_manager.ui_components, 'quantity_placeholder', '0')
+        price_ph = getattr(self.inventory_manager.ui_components, 'price_placeholder', '0.0')
+        if qty_str == qty_ph:
+            qty_str = ""
+        if price_str == price_ph:
+            price_str = ""
+
+        # Validate presence
+        if not name or not qty_str or not price_str:
             self._show_input_error_dialog()
+            return
+
+        # Parse and validate numbers
+        try:
+            qty = int(qty_str)
+            price_per_kg = float(price_str)
+        except Exception:
+            messagebox.showwarning("Invalid Input", "Stock must be a whole number and Unit Price must be a valid number.")
             return
 
         if qty < 0 or price_per_kg < 0:
