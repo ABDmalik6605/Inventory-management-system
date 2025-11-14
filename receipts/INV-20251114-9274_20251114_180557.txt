@@ -1,0 +1,24 @@
+========================================
+          Abdullah Enterprises          
+       Chauburji, Shamnagar Road        
+            Lahore, Pakistan            
+    Email: aneesmalick174@gmail.com     
+========================================
+
+INVOICE NUMBER: INV-20251114-9274
+DATE: 2025-11-14 13:05:57
+CUSTOMER: Walk-in Customer
+----------------------------------------
+
+ITEM             QTY    PRICE    TOTAL
+----------------------------------------
+Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa    3 Rs 30.00 Rs  90.00
+----------------------------------------
+SUBTOTAL:                 Rs    90.00
+========================================
+GRAND TOTAL:              Rs    90.00
+========================================
+
+      Thank you for your business!      
+           Please come again!           
+========================================

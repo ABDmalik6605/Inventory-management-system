@@ -1,0 +1,24 @@
+==============================
+     Abdullah Enterprises     
+  Chauburji, Shamnagar Road   
+       Lahore, Pakistan       
+Email: aneesmalick174@gmail.com
+==============================
+
+INVOICE NUMBER: INV-20251114-5007
+DATE: 2025-11-14 13:25:08
+CUSTOMER: Saeed cosmetic
+------------------------------
+
+ITEM      QTY  PRICE   TOTAL
+------------------------------
+Fogg       13 Rs630.00 Rs8190.00
+------------------------------
+SUBTOTAL:            Rs8190.00
+==============================
+GRAND TOTAL:         Rs8190.00
+==============================
+
+ Thank you for your business! 
+      Please come again!      
+==============================
